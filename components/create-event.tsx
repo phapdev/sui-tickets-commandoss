@@ -9,9 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, Upload, Plus, X, Ticket, DollarSign } from "lucide-react"
+import { Calendar, Clock, Upload, Plus, X, Ticket as TicketIcon, DollarSign } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
+import { useCreateTicketStore } from "@/stores/storage/useCreateTicketStorage"
+import { Ticket } from "@/types"
+import { TuskyApi } from "@/stores/tusky/api"
 
 const categories = ["Technology", "Music", "Art", "Finance", "Gaming", "Sports", "Education", "Business"]
 
@@ -42,23 +45,7 @@ interface EventFormData {
 }
 
 export function CreateEvent() {
-  const [formData, setFormData] = useState<EventFormData>({
-    title: "",
-    description: "",
-    category: "",
-    date: "",
-    time: "",
-    endTime: "",
-    location: "",
-    address: "",
-    price: "",
-    totalTickets: "",
-    image: "",
-    gradient: gradients[0].value,
-    speakers: [],
-    agenda: [],
-  })
-
+  const { formData, setFormData, resetFormData } = useCreateTicketStore()
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [newSpeaker, setNewSpeaker] = useState({ name: "", role: "", image: "" })
@@ -66,48 +53,57 @@ export function CreateEvent() {
   const { toast } = useToast()
 
   const handleInputChange = (field: keyof EventFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData({ [field]: value })
   }
 
   const addSpeaker = () => {
     if (newSpeaker.name && newSpeaker.role) {
-      setFormData((prev) => ({
-        ...prev,
+      setFormData({
         speakers: [
-          ...prev.speakers,
+          ...formData.speakers,
           { ...newSpeaker, image: newSpeaker.image || "/placeholder.svg?height=200&width=200&text=Speaker" },
         ],
-      }))
+      })
       setNewSpeaker({ name: "", role: "", image: "" })
     }
   }
 
   const removeSpeaker = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      speakers: prev.speakers.filter((_, i) => i !== index),
-    }))
+    setFormData({
+      speakers: formData.speakers.filter((_, i) => i !== index),
+    })
   }
 
   const addAgendaItem = () => {
     if (newAgendaItem.time && newAgendaItem.title) {
-      setFormData((prev) => ({
-        ...prev,
-        agenda: [...prev.agenda, newAgendaItem],
-      }))
+      setFormData({
+        agenda: [...formData.agenda, newAgendaItem],
+      })
       setNewAgendaItem({ time: "", title: "" })
     }
   }
 
   const removeAgendaItem = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      agenda: prev.agenda.filter((_, i) => i !== index),
-    }))
+    setFormData({
+      agenda: formData.agenda.filter((_, i) => i !== index),
+    })
   }
 
   const handleSubmit = async () => {
     setIsLoading(true)
+
+    try {
+      const response = await TuskyApi.uploadTickets(
+        formData as unknown as JSON,
+        formData.title,
+        (percentage) => console.log(`Upload progress: ${percentage}%`),
+        (upload) => console.log("Upload success:", upload),
+        () => console.error("Upload failed")
+      )
+      console.log("~response", response)
+    } catch (error) {
+      console.error("~error", error)
+    }
 
     // Simulate API call to create event
     setTimeout(() => {
@@ -118,22 +114,7 @@ export function CreateEvent() {
       })
 
       // Reset form
-      setFormData({
-        title: "",
-        description: "",
-        category: "",
-        date: "",
-        time: "",
-        endTime: "",
-        location: "",
-        address: "",
-        price: "",
-        totalTickets: "",
-        image: "",
-        gradient: gradients[0].value,
-        speakers: [],
-        agenda: [],
-      })
+      resetFormData()
       setCurrentStep(1)
     }, 2000)
   }
@@ -194,7 +175,7 @@ export function CreateEvent() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Ticket className="h-5 w-5" />
+            <TicketIcon className="h-5 w-5" />
             Step {currentStep}: {steps[currentStep - 1].title}
           </CardTitle>
         </CardHeader>

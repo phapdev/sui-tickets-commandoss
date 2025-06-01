@@ -11,18 +11,9 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { Ticket as TicketType } from "@/types"
 
-interface EventProps {
-  id: string
-  title: string
-  date: string
-  price: string
-  category: string
-  image: string
-  gradient: string
-}
-
-export function EventCard({ event }: { event: EventProps }) {
+export function EventCard({ event }: { event: TicketType }) {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
@@ -35,7 +26,7 @@ export function EventCard({ event }: { event: EventProps }) {
       setIsLoading(false)
       toast({
         title: "Ticket purchased!",
-        description: `You've successfully purchased a ticket for ${event.title}`,
+        description: `You've successfully purchased a ticket for ${event.eventTitle}`,
       })
     }, 1500)
   }
@@ -47,7 +38,7 @@ export function EventCard({ event }: { event: EventProps }) {
           <div className="relative h-80 overflow-hidden rounded-xl">
             <Image
               src={event.image || "/placeholder.svg"}
-              alt={event.title}
+              alt={event.eventTitle || ""}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
@@ -67,7 +58,7 @@ export function EventCard({ event }: { event: EventProps }) {
 
             {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 className="text-xl font-bold mb-2 line-clamp-2">{event.title}</h3>
+              <h3 className="text-xl font-bold mb-2 line-clamp-2">{event.eventTitle}</h3>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center text-sm text-white/80">

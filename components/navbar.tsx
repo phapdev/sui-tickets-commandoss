@@ -1,18 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Wallet } from "lucide-react";
 import { motion } from "framer-motion";
 import { ConnectButton } from "@mysten/dapp-kit";
 
 export function Navbar() {
-  const [isConnected, setIsConnected] = useState(false);
-
-  const handleConnectWallet = () => {
-    setIsConnected(!isConnected);
-  };
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { Ticket } from "@/types";
+import { events } from "@/mock/tickets-data";
 
 interface TicketStore {
   tickets: Ticket[] | null;
@@ -12,7 +13,7 @@ interface TicketStore {
 }
 
 export const useTicketStore = create<TicketStore>((set, get) => ({
-  tickets: null,
+  tickets: events as unknown as Ticket[] | null,
   setTickets: (tickets: Ticket[]) => set({ tickets }),
   getTickets: () => get().tickets,
   addTicket: (ticket: Ticket) => set((state) => ({ tickets: [...(state.tickets || []), ticket] })),

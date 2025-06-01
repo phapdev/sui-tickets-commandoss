@@ -4,72 +4,17 @@ import { EventCard } from "@/components/event-card"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
 import { useState } from "react"
-
-// Mock events data with categories and better images
-const events = [
-  {
-    id: "1",
-    title: "Blockchain Summit 2024",
-    date: "June 15, 2024",
-    price: "0.5 SUI",
-    category: "Technology",
-    image: "/placeholder.svg?height=600&width=800&text=Blockchain+Summit",
-    gradient: "from-blue-500 to-purple-600",
-  },
-  {
-    id: "2",
-    title: "Web3 Developer Conference",
-    date: "July 22, 2024",
-    price: "0.8 SUI",
-    category: "Technology",
-    image: "/placeholder.svg?height=600&width=800&text=Web3+Conference",
-    gradient: "from-green-500 to-blue-500",
-  },
-  {
-    id: "3",
-    title: "Crypto Music Festival",
-    date: "August 5, 2024",
-    price: "1.2 SUI",
-    category: "Music",
-    image: "/placeholder.svg?height=600&width=800&text=Music+Festival",
-    gradient: "from-pink-500 to-orange-500",
-  },
-  {
-    id: "4",
-    title: "NFT Art Exhibition",
-    date: "August 18, 2024",
-    price: "0.3 SUI",
-    category: "Art",
-    image: "/placeholder.svg?height=600&width=800&text=NFT+Art+Exhibition",
-    gradient: "from-purple-500 to-pink-500",
-  },
-  {
-    id: "5",
-    title: "DeFi Investment Summit",
-    date: "September 10, 2024",
-    price: "0.7 SUI",
-    category: "Finance",
-    image: "/placeholder.svg?height=600&width=800&text=DeFi+Summit",
-    gradient: "from-yellow-500 to-red-500",
-  },
-  {
-    id: "6",
-    title: "Metaverse Gaming Expo",
-    date: "October 5, 2024",
-    price: "0.6 SUI",
-    category: "Gaming",
-    image: "/placeholder.svg?height=600&width=800&text=Gaming+Expo",
-    gradient: "from-indigo-500 to-purple-500",
-  },
-]
+import { useTicketStore } from "@/stores/storage/useTicketStorage"
+import { Ticket } from "@/types"
 
 const categories = ["All", "Technology", "Music", "Art", "Finance", "Gaming"]
 
 export function BuyTickets() {
   const [selectedCategory, setSelectedCategory] = useState("All")
+  const { tickets: events } = useTicketStore()
 
   const filteredEvents =
-    selectedCategory === "All" ? events : events.filter((event) => event.category === selectedCategory)
+    selectedCategory === "All" ? events : events?.filter((event) => event.category === selectedCategory)
 
   const container = {
     hidden: { opacity: 0 },
@@ -103,7 +48,7 @@ export function BuyTickets() {
       </div>
 
       {/* Events Grid */}
-      {filteredEvents.length === 0 ? (
+      {filteredEvents?.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No events found in this category.</p>
         </div>
@@ -114,9 +59,9 @@ export function BuyTickets() {
           initial="hidden"
           animate="show"
         >
-          {filteredEvents.map((event) => (
+          {filteredEvents?.map((event) => (
             <motion.div key={event.id} variants={item}>
-              <EventCard event={event} />
+              <EventCard event={event as unknown as Ticket} />
             </motion.div>
           ))}
         </motion.div>
