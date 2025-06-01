@@ -28,7 +28,7 @@ export function EventCard({ event }: { event: TicketType }) {
   }
 
   return (
-    <Link href={`/events/${event.id}`}>
+    <Link href={`/tickets/${event.id}`}>
       <motion.div whileHover={{ y: -8, scale: 1.02 }} transition={{ duration: 0.3 }} className="cursor-pointer">
         <Card className="overflow-hidden border-0 bg-transparent group">
           <div className="relative h-80 overflow-hidden rounded-xl">

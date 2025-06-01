@@ -7,36 +7,15 @@ import { Calendar, Clock, MapPin, ArrowLeft, Share2, Download, ExternalLink, Has
 import Image from "next/image"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
+import { Ticket } from "@/types"
 
-interface TicketDetailProps {
-  id: string
-  eventId: string
-  eventTitle: string
-  date: string
-  time: string
-  location: string
-  address: string
-  price: string
-  category: string
-  status: string
-  purchaseDate: string
-  tokenId: string
-  seatNumber: string
-  ticketType: string
-  image: string
-  gradient: string
-  qrCode: string
-  eventDescription: string
-  transferHistory: Array<{ date: string; from: string; to: string; txHash: string }>
-}
-
-export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
+export function TicketDetailPage({ ticket }: { ticket: Ticket }) {
   const { toast } = useToast()
 
   const handleShare = () => {
     navigator.share?.({
-      title: `My ticket to ${ticket.eventTitle}`,
-      text: `Check out my NFT ticket for ${ticket.eventTitle}`,
+      title: `My ticket to ${ticket.title}`,
+      text: `Check out my NFT ticket for ${ticket.title}`,
       url: window.location.href,
     }) || navigator.clipboard.writeText(window.location.href)
 
@@ -54,14 +33,14 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
   }
 
   const handleViewOnExplorer = () => {
-    window.open(`https://explorer.sui.io/object/${ticket.tokenId}`, "_blank")
+    window.open(`https://explorer.sui.io/object/${ticket.id}`, "_blank")
   }
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative h-[50vh] overflow-hidden">
-        <Image src={ticket.image || "/placeholder.svg"} alt={ticket.eventTitle} fill className="object-cover" />
+        <Image src={ticket.image || "/placeholder.svg"} alt={ticket.title} fill className="object-cover" />
         <div className={`absolute inset-0 bg-gradient-to-r ${ticket.gradient} opacity-30`} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
@@ -97,11 +76,11 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
               <Badge variant="secondary" className="bg-white/90 text-black">
                 {ticket.category}
               </Badge>
-              <Badge variant={ticket.status === "active" ? "default" : "secondary"} className="bg-white/90 text-black">
+              {/* <Badge variant={ticket.status === "active" ? "default" : "secondary"} className="bg-white/90 text-black">
                 {ticket.status === "active" ? "Active" : "Used"}
-              </Badge>
+              </Badge> */}
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">{ticket.eventTitle}</h1>
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">{ticket.title}</h1>
             <div className="flex flex-wrap gap-6 text-white/90">
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 mr-2" />
@@ -141,36 +120,36 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
                       <div className="space-y-4">
                         <div>
                           <h4 className="font-semibold mb-1">Seat Number</h4>
-                          <p className="text-muted-foreground">{ticket.seatNumber}</p>
+                          <p className="text-muted-foreground">{ticket.totalTickets}</p>
                         </div>
                         <div>
                           <h4 className="font-semibold mb-1">Ticket Type</h4>
-                          <p className="text-muted-foreground">{ticket.ticketType}</p>
+                          <p className="text-muted-foreground">{ticket.price}</p>
                         </div>
                         <div>
                           <h4 className="font-semibold mb-1">Purchase Date</h4>
-                          <p className="text-muted-foreground">{ticket.purchaseDate}</p>
+                          <p className="text-muted-foreground">{ticket.date}</p>
                         </div>
                       </div>
                       <div className="space-y-4">
                         <div>
                           <h4 className="font-semibold mb-1">Price Paid</h4>
-                          <p className="text-muted-foreground">{ticket.price}</p>
+                          <p className="text-muted-foreground">{ticket.totalTickets}</p>
                         </div>
                         <div>
                           <h4 className="font-semibold mb-1">Token ID</h4>
-                          <p className="text-muted-foreground font-mono text-sm">{ticket.tokenId}</p>
+                          <p className="text-muted-foreground font-mono text-sm">{ticket.id}</p>
                         </div>
                         <div>
                           <h4 className="font-semibold mb-1">Venue Address</h4>
-                          <p className="text-muted-foreground">{ticket.address}</p>
+                          <p className="text-muted-foreground">{ticket.location}</p>
                         </div>
                       </div>
                     </div>
 
                     <div>
                       <h4 className="font-semibold mb-2">About the Event</h4>
-                      <p className="text-muted-foreground leading-relaxed">{ticket.eventDescription}</p>
+                      <p className="text-muted-foreground leading-relaxed">{ticket.description}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -184,7 +163,7 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
 
                     <div className="inline-block p-6 bg-white rounded-lg">
                       <Image
-                        src={ticket.qrCode || "/placeholder.svg"}
+                        src={ticket.image || "/placeholder.svg"}
                         alt="QR Code"
                         width={200}
                         height={200}
@@ -205,7 +184,18 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
                     <h3 className="text-xl font-semibold mb-4">Transfer History</h3>
 
                     <div className="space-y-4">
-                      {ticket.transferHistory.map((transfer, index) => (
+                    <div className="flex items-start gap-4 pb-4 border-b last:border-b-0">
+                          <div className="text-sm text-muted-foreground min-w-[100px]">{ticket.date}</div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm">From: {ticket.address}</span>
+                              <span className="text-muted-foreground">→</span>
+                              <span className="text-sm">To: </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground font-mono">txHash</p>
+                          </div>
+                        </div>
+                      {/* {ticket.transferHistory.map((transfer, index) => (
                         <div key={index} className="flex items-start gap-4 pb-4 border-b last:border-b-0">
                           <div className="text-sm text-muted-foreground min-w-[100px]">{transfer.date}</div>
                           <div className="flex-1">
@@ -217,7 +207,7 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
                             <p className="text-xs text-muted-foreground font-mono">{transfer.txHash}</p>
                           </div>
                         </div>
-                      ))}
+                      ))} */}
                     </div>
                   </CardContent>
                 </Card>
@@ -238,7 +228,7 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
                       View on Explorer
                     </Button>
                     <Button asChild variant="outline" className="w-full justify-start">
-                      <Link href={`/events/${ticket.eventId}`}>
+                      <Link href={`/events/${ticket.id}`}>
                         <Hash className="h-4 w-4 mr-2" />
                         View Event Details
                       </Link>
@@ -262,9 +252,9 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status</span>
-                      <Badge variant={ticket.status === "active" ? "default" : "secondary"} className="text-xs">
+                      {/* <Badge variant={ticket.status === "active" ? "default" : "secondary"} className="text-xs">
                         {ticket.status}
-                      </Badge>
+                      </Badge> */}
                     </div>
                   </div>
                 </CardContent>
@@ -274,5 +264,5 @@ export function TicketDetailPage({ ticket }: { ticket: TicketDetailProps }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -84,7 +84,6 @@ export async function getContentFile(fileId: string) {
       "Api-Key": TUS_API_KEY,
     },
   });
-  console.log("~response-content-file", response);
   return response.json();
 }
 

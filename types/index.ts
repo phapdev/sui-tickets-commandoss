@@ -26,3 +26,52 @@ export type Ticket = EventFormData & {
   id: string;
   transferHistory: TransferHistory[];
 };
+
+
+export type Event = {
+    id: string;
+    title: string;
+    date: string;
+    time: string;
+    location: string;
+    address: string;
+    price: string;
+    category: string;
+    description: string;
+    image: string;
+    gradient: string;
+    gallery: string[];
+    speakers: Array<{
+        name: string;
+        role: string;
+        image: string;
+    }>;
+    agenda: Array<{
+        time: string;
+        title: string;
+    }>;
+    totalTickets: number;
+    soldTickets: number;
+    organizer: string;
+}
+
+
+export interface EventDetailProps {
+    id: string
+    title: string
+    date: string
+    time: string
+    location: string
+    address: string
+    price: string
+    category: string
+    description: string
+    image: string
+    gradient: string
+    gallery: string[]
+    speakers: Array<{ name: string; role: string; image: string }>
+    agenda: Array<{ time: string; title: string }>
+    totalTickets: number
+    soldTickets: number
+    organizer: string
+  }
