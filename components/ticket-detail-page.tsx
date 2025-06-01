@@ -3,33 +3,23 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar, Clock, MapPin, ArrowLeft, Share2, Download, ExternalLink, Hash } from "lucide-react"
+import { Calendar, Clock, MapPin, ArrowLeft, Download, ExternalLink, Hash } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useToast } from "@/hooks/use-toast"
 import { Ticket } from "@/types"
+import { toast } from "sonner"
+import { ShareButton } from "./share-button"
 
 export function TicketDetailPage({ ticket }: { ticket: Ticket }) {
-  const { toast } = useToast()
 
   const handleShare = () => {
-    navigator.share?.({
-      title: `My ticket to ${ticket.title}`,
-      text: `Check out my NFT ticket for ${ticket.title}`,
-      url: window.location.href,
-    }) || navigator.clipboard.writeText(window.location.href)
+    navigator.clipboard.writeText(window.location.href)
 
-    toast({
-      title: "Link copied!",
-      description: "Ticket link has been copied to clipboard",
-    })
+    toast.success("Link copied!")
   }
 
   const handleDownload = () => {
-    toast({
-      title: "Downloading ticket",
-      description: "Your ticket is being downloaded as a PDF",
-    })
+    toast.success("Downloading ticket")
   }
 
   const handleViewOnExplorer = () => {
@@ -56,9 +46,7 @@ export function TicketDetailPage({ ticket }: { ticket: Ticket }) {
 
         {/* Action buttons */}
         <div className="absolute top-6 right-6 flex gap-2">
-          <Button onClick={handleShare} variant="secondary" size="sm" className="bg-white/90 text-black hover:bg-white">
-            <Share2 className="h-4 w-4" />
-          </Button>
+          <ShareButton className="bg-white/90 text-black hover:bg-white" id={ticket.id} size="sm" />
           <Button
             onClick={handleDownload}
             variant="secondary"

@@ -12,6 +12,7 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { Ticket as TicketType } from "@/types"
 import { toast } from "sonner"
+import { ShareButton } from "@/components/share-button"
 
 export function EventCard({ event }: { event: TicketType }) {
   const [isLoading, setIsLoading] = useState(false)
@@ -32,6 +33,9 @@ export function EventCard({ event }: { event: TicketType }) {
       <motion.div whileHover={{ y: -8, scale: 1.02 }} transition={{ duration: 0.3 }} className="cursor-pointer">
         <Card className="overflow-hidden border-0 bg-transparent group">
           <div className="relative h-80 overflow-hidden rounded-xl">
+            <div className="absolute top-2 right-2 z-10">
+              <ShareButton id={event.id} />
+            </div>
             <Image
               src={event.image || "/placeholder.svg"}
               alt={event.title || ""}
