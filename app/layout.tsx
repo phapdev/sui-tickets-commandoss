@@ -12,7 +12,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Sui Tickets - Web3 Ticketing System",
   description: "Buy and manage event tickets on the Sui blockchain",
-  generator: "v0.dev",
 };
 
 export default function RootLayout({
