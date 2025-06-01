@@ -5,7 +5,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/navbar";
 import RootProviders from "@/providers";
-import '@mysten/dapp-kit/dist/index.css';
+import "@mysten/dapp-kit/dist/index.css";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +36,7 @@ export default function RootLayout({
               <div className="flex-1">{children}</div>
             </div>
           </ThemeProvider>
+          <Toaster position="top-right" closeButton />
         </RootProviders>
       </body>
     </html>

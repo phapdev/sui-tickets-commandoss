@@ -5,24 +5,24 @@ export interface TransferHistory {
   txHash: string;
 }
 
-export interface Ticket {
-  id: string;
-  eventId: string;
-  eventTitle: string;
+export type EventFormData = {
+  title: string;
+  description: string;
+  category: string;
   date: string;
   time: string;
+  endTime: string;
   location: string;
   address: string;
   price: string;
-  category: string;
-  status: string;
-  purchaseDate: string;
-  tokenId: string;
-  seatNumber: string;
-  ticketType: string;
+  totalTickets: string;
   image: string;
   gradient: string;
-  qrCode: string;
-  eventDescription: string;
-  transferHistory: TransferHistory[];
+  speakers: Array<{ name: string; role: string; image: string }>;
+  agenda: Array<{ time: string; title: string }>;
 }
+
+export type Ticket = EventFormData & {
+  id: string;
+  transferHistory: TransferHistory[];
+};

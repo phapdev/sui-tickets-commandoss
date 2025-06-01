@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Ticket } from "@/types";
 
 interface EventFormData {
+  id: string;
   title: string;
   description: string;
   category: string;
@@ -26,6 +27,7 @@ interface CreateTicketStore {
 }
 
 const initialFormData: EventFormData = {
+  id: "",
   title: "",
   description: "",
   category: "",

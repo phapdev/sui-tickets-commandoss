@@ -16,7 +16,6 @@ export default function RootProviders({
       enableSystem
       disableTransitionOnChange
     >
-      <Toaster position="bottom-right" closeButton />
       <SuiClientProviderWrapper>
         <WalletProviderWrapper>{children}</WalletProviderWrapper>
       </SuiClientProviderWrapper>
