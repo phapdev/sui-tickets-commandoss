@@ -21,31 +21,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta
-          name="twitter:site"
-          content="https://sui-tickets-commandoss.vercel.app/view?id=1748759438387"
-        />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Sui Ticket DApp" />
-        <meta
-          name="twitter:description"
-          content="A decentralized ticket marketplace built on Sui"
-        />
-        <meta
-          name="twitter:image"
-          content="https://cdn.prod.website-files.com/6425f546844727ce5fb9e5ab/659d95d2971219c839dc65ac_logo-sui.svg"
-        />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="https://sui-tickets-commandoss.vercel.app/view?id=1748759438387" />
-        <meta name="twitter:title" content="Sui Ticket DApp" />
-        <meta name="twitter:player" content="https://sui-tickets-commandoss.vercel.app/view?id=1748759438387" />
-        <meta name="twitter:player:width" content="580" />
-        <meta name="twitter:player:height" content="680" />
-        <meta name="twitter:description" content="A decentralized ticket marketplace built on Sui" />
-        <meta name="twitter:image" content="https://cdn.prod.website-files.com/6425f546844727ce5fb9e5ab/659d95d2971219c839dc65ac_logo-sui.svg" />
+      <meta name="twitter:card" content="player" />
+          <meta name="twitter:site" content="https://sui-tickets-commandoss.vercel.app/view?id=1748759438387" />
+          <meta name="twitter:title" content="Sui Ticket DApp" />
+          <meta name="twitter:description" content="A decentralized ticket marketplace built on Sui" />
+          <meta name="twitter:player" content="https://sui-tickets-commandoss.vercel.app/view?id=1748759438387" />
+          <meta name="twitter:player:width" content="580" />
+          <meta name="twitter:player:height" content="680" />
+          <meta name="twitter:image" content="https://cdn.prod.website-files.com/6425f546844727ce5fb9e5ab/659d95d2971219c839dc65ac_logo-sui.svg" />
           <meta property="og:url" content="https://sui-tickets-commandoss.vercel.app/view?id=1748759438387" />
           <meta property="og:title" content="Sui Ticket DApp" />
           <meta property="og:description" content="A decentralized ticket marketplace built on Sui" />
+          <meta property="og:image" content="https://cdn.prod.website-files.com/6425f546844727ce5fb9e5ab/659d95d2971219c839dc65ac_logo-sui.svg" />
       </head>
       <body className={inter.className}>
         <RootProviders>
