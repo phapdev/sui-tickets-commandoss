@@ -1,17 +1,9 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Wallet } from "lucide-react"
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
+import { ConnectButton } from "@mysten/dapp-kit";
 
 export function Navbar() {
-  const [isConnected, setIsConnected] = useState(false)
-
-  const handleConnectWallet = () => {
-    setIsConnected(!isConnected)
-  }
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
@@ -31,12 +23,9 @@ export function Navbar() {
         </div>
 
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button onClick={handleConnectWallet} variant={isConnected ? "outline" : "default"} className="gap-2">
-            <Wallet className="h-4 w-4" />
-            {isConnected ? "0x7a...3f9b" : "Connect Wallet"}
-          </Button>
+          <ConnectButton />
         </motion.div>
       </div>
     </header>
-  )
+  );
 }

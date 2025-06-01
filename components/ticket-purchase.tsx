@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { useWallet } from "@/components/wallet-provider"
 import { Coins, Shield, Zap, Minus, Plus } from "lucide-react"
 
 interface Event {
@@ -28,18 +27,12 @@ interface TicketPurchaseProps {
 export function TicketPurchase({ event }: TicketPurchaseProps) {
   const [quantity, setQuantity] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
-  const { isConnected, connect } = useWallet()
   const { toast } = useToast()
 
   const totalPrice = (Number.parseFloat(event.price) * quantity).toFixed(2)
   const availableTickets = event.totalTickets - event.soldTickets
 
   const handlePurchase = async () => {
-    if (!isConnected) {
-      await connect()
-      return
-    }
-
     setIsLoading(true)
 
     // Simulate NFT minting process
@@ -137,8 +130,6 @@ export function TicketPurchase({ event }: TicketPurchaseProps) {
                 transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
                 className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
               />
-            ) : !isConnected ? (
-              "Connect Wallet to Purchase"
             ) : availableTickets === 0 ? (
               "Sold Out"
             ) : (

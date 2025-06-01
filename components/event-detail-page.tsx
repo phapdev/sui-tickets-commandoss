@@ -9,42 +9,23 @@ import { Calendar, Clock, MapPin, ArrowLeft, Ticket, Share2 } from "lucide-react
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { EventDetailProps } from "@/types"
+import { useTicketStore } from "@/stores/storage/useTicketStorage"
+import { toast } from "sonner"
 
-interface EventDetailProps {
-  id: string
-  title: string
-  date: string
-  time: string
-  location: string
-  address: string
-  price: string
-  category: string
-  description: string
-  image: string
-  gradient: string
-  gallery: string[]
-  speakers: Array<{ name: string; role: string; image: string }>
-  agenda: Array<{ time: string; title: string }>
-  totalTickets: number
-  soldTickets: number
-  organizer: string
-}
-
-export function EventDetailPage({ event }: { event: EventDetailProps }) {
+export function EventDetailPage({ id }: { id: string }) {
+  const { getTicketById } = useTicketStore()
+  const event = getTicketById(id) as unknown as EventDetailProps;
+  console.log("~event", event)
   const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
-  const availableTickets = event.totalTickets - event.soldTickets
-  const soldPercentage = (event.soldTickets / event.totalTickets) * 100
+  const availableTickets = 10
+  const soldPercentage = 1
 
   const handleBuyTicket = () => {
     setIsLoading(true)
     setTimeout(() => {
       setIsLoading(false)
-      toast({
-        title: "Ticket purchased!",
-        description: `You've successfully purchased a ticket for ${event.title}`,
-      })
+      toast.success("Ticket purchased!")
     }, 1500)
   }
 
@@ -55,17 +36,14 @@ export function EventDetailPage({ event }: { event: EventDetailProps }) {
       url: window.location.href,
     }) || navigator.clipboard.writeText(window.location.href)
 
-    toast({
-      title: "Link copied!",
-      description: "Event link has been copied to clipboard",
-    })
+    toast.success("Link copied!")
   }
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative h-[60vh] overflow-hidden">
-        <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
+        {/* <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" /> */}
         <div className={`absolute inset-0 bg-gradient-to-r ${event.gradient} opacity-30`} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
@@ -137,7 +115,7 @@ export function EventDetailPage({ event }: { event: EventDetailProps }) {
                       </div>
                       <div>
                         <h4 className="font-semibold mb-2">Organizer</h4>
-                        <p className="text-muted-foreground">{event.organizer}</p>
+                        <p className="text-muted-foreground">Organizer</p>
                       </div>
                     </div>
                   </CardContent>
@@ -191,7 +169,7 @@ export function EventDetailPage({ event }: { event: EventDetailProps }) {
 
               <TabsContent value="gallery" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {event.gallery.map((image, index) => (
+                  {event.gallery?.map((image: string, index: number) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, scale: 0.8 }}

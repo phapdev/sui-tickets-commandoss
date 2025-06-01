@@ -10,21 +10,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { Ticket as TicketType } from "@/types"
+import { toast } from "sonner"
+import { ShareButton } from "@/components/share-button"
 
-interface EventProps {
-  id: string
-  title: string
-  date: string
-  price: string
-  category: string
-  image: string
-  gradient: string
-}
-
-export function EventCard({ event }: { event: EventProps }) {
+export function EventCard({ event }: { event: TicketType }) {
   const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
 
   const handleBuyTicket = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -33,21 +24,21 @@ export function EventCard({ event }: { event: EventProps }) {
 
     setTimeout(() => {
       setIsLoading(false)
-      toast({
-        title: "Ticket purchased!",
-        description: `You've successfully purchased a ticket for ${event.title}`,
-      })
+      toast.success("Ticket purchased!");
     }, 1500)
   }
 
   return (
-    <Link href={`/events/${event.id}`}>
+    <Link href={`/tickets/${event.id}`}>
       <motion.div whileHover={{ y: -8, scale: 1.02 }} transition={{ duration: 0.3 }} className="cursor-pointer">
         <Card className="overflow-hidden border-0 bg-transparent group">
           <div className="relative h-80 overflow-hidden rounded-xl">
+            <div className="absolute top-2 right-2 z-10">
+              <ShareButton id={event.id} />
+            </div>
             <Image
               src={event.image || "/placeholder.svg"}
-              alt={event.title}
+              alt={event.title || ""}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
@@ -101,5 +92,5 @@ export function EventCard({ event }: { event: EventProps }) {
         </Card>
       </motion.div>
     </Link>
-  )
+  );
 }

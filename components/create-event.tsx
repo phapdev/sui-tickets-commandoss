@@ -1,19 +1,45 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, Upload, Plus, X, Ticket, DollarSign } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import Image from "next/image"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  Clock,
+  Upload,
+  Plus,
+  X,
+  Ticket as TicketIcon,
+  DollarSign,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
+import { useCreateTicketStore } from "@/stores/storage/useCreateTicketStorage";
+import { TuskyApi } from "@/stores/tusky/api";
+import { EventFormData } from "@/types";
 
-const categories = ["Technology", "Music", "Art", "Finance", "Gaming", "Sports", "Education", "Business"]
+const categories = [
+  "Technology",
+  "Music",
+  "Art",
+  "Finance",
+  "Gaming",
+  "Sports",
+  "Education",
+  "Business",
+];
 
 const gradients = [
   { name: "Blue Purple", value: "from-blue-500 to-purple-600" },
@@ -22,148 +48,140 @@ const gradients = [
   { name: "Purple Pink", value: "from-purple-500 to-pink-500" },
   { name: "Yellow Red", value: "from-yellow-500 to-red-500" },
   { name: "Indigo Purple", value: "from-indigo-500 to-purple-500" },
-]
+];
 
-interface EventFormData {
-  title: string
-  description: string
-  category: string
-  date: string
-  time: string
-  endTime: string
-  location: string
-  address: string
-  price: string
-  totalTickets: string
-  image: string
-  gradient: string
-  speakers: Array<{ name: string; role: string; image: string }>
-  agenda: Array<{ time: string; title: string }>
-}
+
 
 export function CreateEvent() {
-  const [formData, setFormData] = useState<EventFormData>({
-    title: "",
-    description: "",
-    category: "",
-    date: "",
-    time: "",
-    endTime: "",
-    location: "",
-    address: "",
-    price: "",
-    totalTickets: "",
+  const { formData, setFormData, resetFormData } = useCreateTicketStore();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [newSpeaker, setNewSpeaker] = useState({
+    name: "",
+    role: "",
     image: "",
-    gradient: gradients[0].value,
-    speakers: [],
-    agenda: [],
-  })
-
-  const [currentStep, setCurrentStep] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [newSpeaker, setNewSpeaker] = useState({ name: "", role: "", image: "" })
-  const [newAgendaItem, setNewAgendaItem] = useState({ time: "", title: "" })
-  const { toast } = useToast()
+  });
+  const [newAgendaItem, setNewAgendaItem] = useState({ time: "", title: "" });
+  const { toast } = useToast();
 
   const handleInputChange = (field: keyof EventFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData({ [field]: value });
+  };
 
   const addSpeaker = () => {
     if (newSpeaker.name && newSpeaker.role) {
-      setFormData((prev) => ({
-        ...prev,
+      setFormData({
         speakers: [
-          ...prev.speakers,
-          { ...newSpeaker, image: newSpeaker.image || "/placeholder.svg?height=200&width=200&text=Speaker" },
+          ...formData.speakers,
+          {
+            ...newSpeaker,
+            image:
+              newSpeaker.image ||
+              "/placeholder.svg?height=200&width=200&text=Speaker",
+          },
         ],
-      }))
-      setNewSpeaker({ name: "", role: "", image: "" })
+      });
+      setNewSpeaker({ name: "", role: "", image: "" });
     }
-  }
+  };
 
   const removeSpeaker = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      speakers: prev.speakers.filter((_, i) => i !== index),
-    }))
-  }
+    setFormData({
+      speakers: formData.speakers.filter((_, i) => i !== index),
+    });
+  };
 
   const addAgendaItem = () => {
     if (newAgendaItem.time && newAgendaItem.title) {
-      setFormData((prev) => ({
-        ...prev,
-        agenda: [...prev.agenda, newAgendaItem],
-      }))
-      setNewAgendaItem({ time: "", title: "" })
+      setFormData({
+        agenda: [...formData.agenda, newAgendaItem],
+      });
+      setNewAgendaItem({ time: "", title: "" });
     }
-  }
+  };
 
   const removeAgendaItem = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      agenda: prev.agenda.filter((_, i) => i !== index),
-    }))
-  }
+    setFormData({
+      agenda: formData.agenda.filter((_, i) => i !== index),
+    });
+  };
 
   const handleSubmit = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
+
+    try {
+      formData.id = Date.now().toString();
+      const response = await TuskyApi.uploadTickets(
+        formData as unknown as JSON,
+        formData.title,
+        (percentage) => console.log(`Upload progress: ${percentage}%`),
+        (upload) => console.log("Upload success:", upload),
+        () => console.error("Upload failed")
+      );
+      console.log("~response", response);
+    } catch (error) {
+      console.error("~error", error);
+    }
 
     // Simulate API call to create event
     setTimeout(() => {
-      setIsLoading(false)
+      setIsLoading(false);
       toast({
         title: "Event created successfully!",
         description: `${formData.title} has been created and is now live for ticket sales.`,
-      })
+      });
 
       // Reset form
-      setFormData({
-        title: "",
-        description: "",
-        category: "",
-        date: "",
-        time: "",
-        endTime: "",
-        location: "",
-        address: "",
-        price: "",
-        totalTickets: "",
-        image: "",
-        gradient: gradients[0].value,
-        speakers: [],
-        agenda: [],
-      })
-      setCurrentStep(1)
-    }, 2000)
-  }
+      resetFormData();
+      setCurrentStep(1);
+    }, 2000);
+  };
 
   const isStepValid = (step: number) => {
     switch (step) {
       case 1:
-        return formData.title && formData.description && formData.category
+        return formData.title && formData.description && formData.category;
       case 2:
-        return formData.date && formData.time && formData.location && formData.address
+        return (
+          formData.date &&
+          formData.time &&
+          formData.location &&
+          formData.address
+        );
       case 3:
-        return formData.price && formData.totalTickets
+        return formData.price && formData.totalTickets;
       default:
-        return true
+        return true;
     }
-  }
+  };
 
   const steps = [
-    { number: 1, title: "Basic Info", description: "Event details and description" },
+    {
+      number: 1,
+      title: "Basic Info",
+      description: "Event details and description",
+    },
     { number: 2, title: "Date & Location", description: "When and where" },
-    { number: 3, title: "Pricing", description: "Ticket pricing and availability" },
-    { number: 4, title: "Additional", description: "Speakers, agenda, and media" },
-  ]
+    {
+      number: 3,
+      title: "Pricing",
+      description: "Ticket pricing and availability",
+    },
+    {
+      number: 4,
+      title: "Additional",
+      description: "Speakers, agenda, and media",
+    },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center">
         <h2 className="text-3xl font-bold mb-2">Create New Event</h2>
-        <p className="text-muted-foreground">Launch your event and start selling NFT tickets on Sui</p>
+        <p className="text-muted-foreground">
+          Launch your event and start selling NFT tickets on Sui
+        </p>
       </div>
 
       {/* Progress Steps */}
@@ -182,9 +200,13 @@ export function CreateEvent() {
               </div>
               <div className="ml-2 hidden md:block">
                 <div className="text-sm font-medium">{step.title}</div>
-                <div className="text-xs text-muted-foreground">{step.description}</div>
+                <div className="text-xs text-muted-foreground">
+                  {step.description}
+                </div>
               </div>
-              {index < steps.length - 1 && <div className="w-8 h-px bg-muted-foreground mx-4" />}
+              {index < steps.length - 1 && (
+                <div className="w-8 h-px bg-muted-foreground mx-4" />
+              )}
             </div>
           ))}
         </div>
@@ -194,14 +216,18 @@ export function CreateEvent() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Ticket className="h-5 w-5" />
+            <TicketIcon className="h-5 w-5" />
             Step {currentStep}: {steps[currentStep - 1].title}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Step 1: Basic Info */}
           {currentStep === 1 && (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="title">Event Title *</Label>
@@ -214,7 +240,12 @@ export function CreateEvent() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category">Category *</Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) =>
+                      handleInputChange("category", value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -236,7 +267,9 @@ export function CreateEvent() {
                   placeholder="Describe your event..."
                   rows={4}
                   value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                 />
               </div>
 
@@ -244,7 +277,9 @@ export function CreateEvent() {
                 <Label>Event Image</Label>
                 <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                   <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Upload event banner image</p>
+                  <p className="text-sm text-muted-foreground">
+                    Upload event banner image
+                  </p>
                   <Button variant="outline" size="sm" className="mt-2">
                     Choose File
                   </Button>
@@ -258,9 +293,15 @@ export function CreateEvent() {
                     <button
                       key={gradient.value}
                       type="button"
-                      onClick={() => handleInputChange("gradient", gradient.value)}
-                      className={`h-12 rounded-lg bg-gradient-to-r ${gradient.value} border-2 transition-all ${
-                        formData.gradient === gradient.value ? "border-primary scale-105" : "border-transparent"
+                      onClick={() =>
+                        handleInputChange("gradient", gradient.value)
+                      }
+                      className={`h-12 rounded-lg bg-gradient-to-r ${
+                        gradient.value
+                      } border-2 transition-all ${
+                        formData.gradient === gradient.value
+                          ? "border-primary scale-105"
+                          : "border-transparent"
                       }`}
                     />
                   ))}
@@ -271,7 +312,11 @@ export function CreateEvent() {
 
           {/* Step 2: Date & Location */}
           {currentStep === 2 && (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="date">Event Date *</Label>
@@ -297,7 +342,9 @@ export function CreateEvent() {
                     id="endTime"
                     type="time"
                     value={formData.endTime}
-                    onChange={(e) => handleInputChange("endTime", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("endTime", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -309,7 +356,9 @@ export function CreateEvent() {
                     id="location"
                     placeholder="e.g., Convention Center"
                     value={formData.location}
-                    onChange={(e) => handleInputChange("location", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("location", e.target.value)
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -318,7 +367,9 @@ export function CreateEvent() {
                     id="address"
                     placeholder="Street address, City, State, ZIP"
                     value={formData.address}
-                    onChange={(e) => handleInputChange("address", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -327,7 +378,11 @@ export function CreateEvent() {
 
           {/* Step 3: Pricing */}
           {currentStep === 3 && (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="price">Ticket Price (SUI) *</Label>
@@ -340,18 +395,24 @@ export function CreateEvent() {
                       placeholder="0.00"
                       className="pl-10"
                       value={formData.price}
-                      onChange={(e) => handleInputChange("price", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("price", e.target.value)
+                      }
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="totalTickets">Total Tickets Available *</Label>
+                  <Label htmlFor="totalTickets">
+                    Total Tickets Available *
+                  </Label>
                   <Input
                     id="totalTickets"
                     type="number"
                     placeholder="1000"
                     value={formData.totalTickets}
-                    onChange={(e) => handleInputChange("totalTickets", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("totalTickets", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -372,7 +433,8 @@ export function CreateEvent() {
                       <span>Potential Revenue:</span>
                       <span>
                         {(
-                          (Number.parseFloat(formData.price) || 0) * (Number.parseInt(formData.totalTickets) || 0)
+                          (Number.parseFloat(formData.price) || 0) *
+                          (Number.parseInt(formData.totalTickets) || 0)
                         ).toFixed(2)}{" "}
                         SUI
                       </span>
@@ -385,7 +447,11 @@ export function CreateEvent() {
 
           {/* Step 4: Additional */}
           {currentStep === 4 && (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
               {/* Speakers Section */}
               <div className="space-y-4">
                 <h4 className="font-semibold">Speakers (Optional)</h4>
@@ -393,14 +459,28 @@ export function CreateEvent() {
                   <Input
                     placeholder="Speaker name"
                     value={newSpeaker.name}
-                    onChange={(e) => setNewSpeaker((prev) => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setNewSpeaker((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
                   />
                   <Input
                     placeholder="Speaker role"
                     value={newSpeaker.role}
-                    onChange={(e) => setNewSpeaker((prev) => ({ ...prev, role: e.target.value }))}
+                    onChange={(e) =>
+                      setNewSpeaker((prev) => ({
+                        ...prev,
+                        role: e.target.value,
+                      }))
+                    }
                   />
-                  <Button onClick={addSpeaker} variant="outline" className="gap-2">
+                  <Button
+                    onClick={addSpeaker}
+                    variant="outline"
+                    className="gap-2"
+                  >
                     <Plus className="h-4 w-4" />
                     Add Speaker
                   </Button>
@@ -409,7 +489,10 @@ export function CreateEvent() {
                 {formData.speakers.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {formData.speakers.map((speaker, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 border rounded-lg"
+                      >
                         <div className="relative w-10 h-10">
                           <Image
                             src={speaker.image || "/placeholder.svg"}
@@ -420,9 +503,15 @@ export function CreateEvent() {
                         </div>
                         <div className="flex-1">
                           <div className="font-medium">{speaker.name}</div>
-                          <div className="text-sm text-muted-foreground">{speaker.role}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {speaker.role}
+                          </div>
                         </div>
-                        <Button onClick={() => removeSpeaker(index)} variant="ghost" size="sm">
+                        <Button
+                          onClick={() => removeSpeaker(index)}
+                          variant="ghost"
+                          size="sm"
+                        >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
@@ -438,14 +527,28 @@ export function CreateEvent() {
                   <Input
                     type="time"
                     value={newAgendaItem.time}
-                    onChange={(e) => setNewAgendaItem((prev) => ({ ...prev, time: e.target.value }))}
+                    onChange={(e) =>
+                      setNewAgendaItem((prev) => ({
+                        ...prev,
+                        time: e.target.value,
+                      }))
+                    }
                   />
                   <Input
                     placeholder="Agenda item"
                     value={newAgendaItem.title}
-                    onChange={(e) => setNewAgendaItem((prev) => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) =>
+                      setNewAgendaItem((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
                   />
-                  <Button onClick={addAgendaItem} variant="outline" className="gap-2">
+                  <Button
+                    onClick={addAgendaItem}
+                    variant="outline"
+                    className="gap-2"
+                  >
                     <Plus className="h-4 w-4" />
                     Add Item
                   </Button>
@@ -454,10 +557,19 @@ export function CreateEvent() {
                 {formData.agenda.length > 0 && (
                   <div className="space-y-2">
                     {formData.agenda.map((item, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <div className="text-sm font-mono text-muted-foreground min-w-[60px]">{item.time}</div>
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 border rounded-lg"
+                      >
+                        <div className="text-sm font-mono text-muted-foreground min-w-[60px]">
+                          {item.time}
+                        </div>
                         <div className="flex-1">{item.title}</div>
-                        <Button onClick={() => removeAgendaItem(index)} variant="ghost" size="sm">
+                        <Button
+                          onClick={() => removeAgendaItem(index)}
+                          variant="ghost"
+                          size="sm"
+                        >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
@@ -479,15 +591,25 @@ export function CreateEvent() {
             </Button>
 
             {currentStep < 4 ? (
-              <Button onClick={() => setCurrentStep(currentStep + 1)} disabled={!isStepValid(currentStep)}>
+              <Button
+                onClick={() => setCurrentStep(currentStep + 1)}
+                disabled={!isStepValid(currentStep)}
+              >
                 Next
               </Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={isLoading || !isStepValid(currentStep)}>
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading || !isStepValid(currentStep)}
+              >
                 {isLoading ? (
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                    transition={{
+                      duration: 1,
+                      repeat: Number.POSITIVE_INFINITY,
+                      ease: "linear",
+                    }}
                     className="h-4 w-4 border-2 border-t-transparent border-white rounded-full mr-2"
                   />
                 ) : null}
@@ -506,7 +628,9 @@ export function CreateEvent() {
           </CardHeader>
           <CardContent>
             <div className="relative h-48 overflow-hidden rounded-lg mb-4">
-              <div className={`absolute inset-0 bg-gradient-to-r ${formData.gradient}`} />
+              <div
+                className={`absolute inset-0 bg-gradient-to-r ${formData.gradient}`}
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute top-4 left-4">
                 <Badge variant="secondary" className="bg-white/90 text-black">
@@ -520,7 +644,9 @@ export function CreateEvent() {
                     {formData.date && (
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        <span>{new Date(formData.date).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(formData.date).toLocaleDateString()}
+                        </span>
                       </div>
                     )}
                     {formData.time && (
@@ -530,7 +656,9 @@ export function CreateEvent() {
                       </div>
                     )}
                   </div>
-                  <div className="font-bold">{formData.price ? `${formData.price} SUI` : "Price TBD"}</div>
+                  <div className="font-bold">
+                    {formData.price ? `${formData.price} SUI` : "Price TBD"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -538,5 +666,5 @@ export function CreateEvent() {
         </Card>
       )}
     </div>
-  )
+  );
 }

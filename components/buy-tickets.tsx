@@ -1,75 +1,25 @@
-"use client"
+"use client";
 
-import { EventCard } from "@/components/event-card"
-import { Badge } from "@/components/ui/badge"
-import { motion } from "framer-motion"
-import { useState } from "react"
+import { EventCard } from "@/components/event-card";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { Ticket } from "@/types";
+import { useTusky } from "@/stores/tusky/hooks/useTusky";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock events data with categories and better images
-const events = [
-  {
-    id: "1",
-    title: "Blockchain Summit 2024",
-    date: "June 15, 2024",
-    price: "0.5 SUI",
-    category: "Technology",
-    image: "/placeholder.svg?height=600&width=800&text=Blockchain+Summit",
-    gradient: "from-blue-500 to-purple-600",
-  },
-  {
-    id: "2",
-    title: "Web3 Developer Conference",
-    date: "July 22, 2024",
-    price: "0.8 SUI",
-    category: "Technology",
-    image: "/placeholder.svg?height=600&width=800&text=Web3+Conference",
-    gradient: "from-green-500 to-blue-500",
-  },
-  {
-    id: "3",
-    title: "Crypto Music Festival",
-    date: "August 5, 2024",
-    price: "1.2 SUI",
-    category: "Music",
-    image: "/placeholder.svg?height=600&width=800&text=Music+Festival",
-    gradient: "from-pink-500 to-orange-500",
-  },
-  {
-    id: "4",
-    title: "NFT Art Exhibition",
-    date: "August 18, 2024",
-    price: "0.3 SUI",
-    category: "Art",
-    image: "/placeholder.svg?height=600&width=800&text=NFT+Art+Exhibition",
-    gradient: "from-purple-500 to-pink-500",
-  },
-  {
-    id: "5",
-    title: "DeFi Investment Summit",
-    date: "September 10, 2024",
-    price: "0.7 SUI",
-    category: "Finance",
-    image: "/placeholder.svg?height=600&width=800&text=DeFi+Summit",
-    gradient: "from-yellow-500 to-red-500",
-  },
-  {
-    id: "6",
-    title: "Metaverse Gaming Expo",
-    date: "October 5, 2024",
-    price: "0.6 SUI",
-    category: "Gaming",
-    image: "/placeholder.svg?height=600&width=800&text=Gaming+Expo",
-    gradient: "from-indigo-500 to-purple-500",
-  },
-]
-
-const categories = ["All", "Technology", "Music", "Art", "Finance", "Gaming"]
+const categories = ["All", "Technology", "Music", "Art", "Finance", "Gaming"];
 
 export function BuyTickets() {
-  const [selectedCategory, setSelectedCategory] = useState("All")
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const { events } = useTusky();
 
-  const filteredEvents =
-    selectedCategory === "All" ? events : events.filter((event) => event.category === selectedCategory)
+  const filteredEvents: Ticket[] | undefined =
+    selectedCategory === "All"
+      ? events
+      : events?.filter(
+          (event: Ticket) => event.category.includes(selectedCategory)
+        );
 
   const container = {
     hidden: { opacity: 0 },
@@ -79,11 +29,32 @@ export function BuyTickets() {
         staggerChildren: 0.1,
       },
     },
-  }
+  };
 
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 },
+  };
+
+  if (!events || events.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-wrap gap-2 justify-center">
+          {categories.map((category) => (
+            <Skeleton key={category} className="h-8 w-20" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="space-y-4">
+              <Skeleton className="h-48 w-full rounded-lg" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -103,9 +74,11 @@ export function BuyTickets() {
       </div>
 
       {/* Events Grid */}
-      {filteredEvents.length === 0 ? (
+      {filteredEvents?.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No events found in this category.</p>
+          <p className="text-muted-foreground">
+            No events found in this category.
+          </p>
         </div>
       ) : (
         <motion.div
@@ -114,7 +87,7 @@ export function BuyTickets() {
           initial="hidden"
           animate="show"
         >
-          {filteredEvents.map((event) => (
+          {filteredEvents?.map((event: Ticket) => (
             <motion.div key={event.id} variants={item}>
               <EventCard event={event} />
             </motion.div>
@@ -122,5 +95,5 @@ export function BuyTickets() {
         </motion.div>
       )}
     </div>
-  )
+  );
 }
